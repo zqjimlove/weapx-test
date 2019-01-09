@@ -1,0 +1,3 @@
+[submodule "weapx"]
+	path = weapx
+	url = git@github.com:zqjimlove/weapx.git

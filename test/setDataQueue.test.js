@@ -143,7 +143,6 @@ export default {
                   testDataQueueStopUpdate: false
                 },
                 () => {
-                  console.log("objectobject");
                   resolve();
                 }
               );
@@ -154,7 +153,6 @@ export default {
             .then(() => {
               return new Promise((resolve, reject) => {
                 try {
-                  console.log(pageCtx.data);
                   expect(
                     pageCtx.data.testDataQueueStopUpdate,
                     "testDataQueueStopUpdate"
