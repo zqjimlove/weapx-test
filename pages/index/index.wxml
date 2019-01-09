@@ -1,0 +1,13 @@
+<!-- index.wxml -->
+<view class="container">
+  <!-- <view class="test-item">sdakfasjk：测试通过</view>
+  <view class="test-item">sdakfasjk：测试通过</view>
+  <view class="test-item test-item-error">sdakfasjk：测试通过</view> -->
+  <view wx:key="{{index}}" wx:for="{{testList}}" class="test-item {{(item.status===1?'':(item.status===-1?'test-item-error':'test-item-pedding'))}}">
+    <View style="flex:1">
+      <View style="font-size:12px;opacity:0.6">#{{item.desc}}</View>
+      <View>#{{item.id}} {{item.itemDesc}}</View>
+    </View>
+    <View>{{(item.status===1?'正确':(item.status===-1?'错误':'等待'))}}</View>
+  </view>
+</view>

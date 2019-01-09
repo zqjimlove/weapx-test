@@ -1,0 +1,17 @@
+.test-item {
+  background: #357a38;
+  font-size: 14px;
+  padding: 4px 10px;
+  color: #fff;
+  border-bottom: 1rpx solid #ccc;
+  display: flex;
+  align-items: center;
+}
+
+.test-item-error {
+  background: #bf360c;
+}
+
+.test-item-pedding {
+  background: #ff9100;
+}
