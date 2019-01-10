@@ -25,7 +25,7 @@ class It {
     itExecutes.push(this.execute.bind(this));
   }
   execute() {
-    console.log(`执行${this.__id}号测试样例`);
+    console.log(`执行${this.__id}号测试用例`);
     this.status = It.PEDDING;
     const paramsLen = this.itemTestFn.length;
     if (paramsLen) {
