@@ -5,7 +5,9 @@ let renderTimer;
 
 let itId = 0;
 
-let currentIt;
+const itExecutes = [];
+
+let currentItPromse = Promise.resolve("init");
 
 class It {
   static DONE = "done";
@@ -20,16 +22,22 @@ class It {
     this.status = It.IDEL;
     this.__id = ++itId;
     this.sync = true;
-    this.execute();
+    itExecutes.push(this.execute.bind(this));
   }
   execute() {
+    console.log(`执行${this.__id}号测试样例`);
     this.status = It.PEDDING;
     const paramsLen = this.itemTestFn.length;
     if (paramsLen) {
       this.sync = false;
       this._asyncExecute();
+      return new Promise((resolve, reject) => {
+        this.asyncResolve = resolve;
+        this.asyncRejct = reject;
+      });
     } else {
       this._syncExecute();
+      return Promise.resolve();
     }
   }
   _syncExecute() {
@@ -86,6 +94,7 @@ class It {
       this.unpedding();
       clearTimeout(this._asyncTimeoutTimer);
     }
+    this.asyncResolve && this.asyncResolve();
     this.status = It.DONe;
   }
   pedding() {
@@ -123,11 +132,21 @@ class It {
   }
 }
 
+let runExecutesTiemr;
+
 export function describe(desc, describeFn) {
   const itF = function(itemdesc, itemTestFn, timeout = 5000) {
     const it = new It(desc, itemdesc, itemTestFn, timeout);
   };
   describeFn(itF);
+
+  runExecutesTiemr && clearTimeout(runExecutesTiemr);
+
+  runExecutesTiemr = setTimeout(() => {
+    itExecutes.reduce((prm, execute) => {
+      return prm.then(execute);
+    }, Promise.resolve());
+  });
 }
 
 export function setPageCtx(ctx) {

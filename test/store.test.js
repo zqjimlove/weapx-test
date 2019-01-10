@@ -1,11 +1,11 @@
 import { describe } from "../utils/we-tdd";
 import { expect } from "../utils/chai";
-import { createStore } from "../weapx/weapx";
-
-import { autorun, observable } from "../weapx/libs/mobx";
+import { createStore, runStore, watchStore } from "../weapx/weapx";
+import { autorun, reaction } from "../weapx/libs/mobx";
 
 let mapToDataTimes = 0;
 let todosId = 0;
+let _mapToDataTimesSwitch = false;
 
 const store = createStore({
   name: "test",
@@ -42,7 +42,7 @@ const store = createStore({
   }
 });
 
-createStore({
+const s2 = createStore({
   name: "test2",
   state: {
     data: {}
@@ -62,25 +62,40 @@ export default {
         today: store => store.test.todayA
       },
       lifecycle: {
-        // onPageDidUpdate() {
-        //   mapToDataTimes++;
-        // }
+        onPageDidUpdate(arg1, arg2) {
+          _mapToDataTimesSwitch && mapToDataTimes++;
+        }
       }
     }
   ],
   test() {
     describe("Test Store", it => {
-      it("store初始化", function() {
+      it("runStore,watchStore", function(done) {
         const { pageCtx } = this;
-        const testStore = pageCtx.$store.test;
-        expect(pageCtx.$store).not.to.be.undefined;
-        expect(pageCtx.$store.test).not.to.be.undefined;
-      });
-      it("store更新", function() {
-        const { pageCtx } = this;
-        expect(pageCtx.$store.test.count).to.be.equal(0);
+        let runTimes = 0;
+        let watchTimes = 0;
+
+        let runer = runStore(() => {
+          runTimes++;
+          return pageCtx.$store.test.count;
+        });
+
+        let watcher = watchStore(
+          () => {
+            return pageCtx.$store.test.todos.length;
+          },
+          () => {
+            watchTimes++;
+          }
+        );
         pageCtx.$store.test.appendTodos();
-        expect(pageCtx.$store.test.count).to.be.equal(1);
+        this.delay(() => {
+          expect(watchTimes, "watchTimes").to.be.equal(1);
+          expect(runTimes, "runTimes").to.be.equal(2);
+          runer();
+          watcher();
+          done();
+        }, 500);
       });
       it("store禁止直接修改state", function() {
         const { pageCtx } = this;
@@ -110,14 +125,15 @@ export default {
       });
       it("storeMapData污染日志", function(done) {
         const { pageCtx } = this;
-        //多次delay为了避免被其他的setData影响
         this.delay(() => {
+          _mapToDataTimesSwitch = true;
           const currentTimes = mapToDataTimes;
           pageCtx.$store.test2.setDataHi();
           this.delay(() => {
+            _mapToDataTimesSwitch = false;
             expect(currentTimes).to.be.equal(mapToDataTimes);
             done();
-          }, 500);
+          }, 100);
         }, 500);
       });
     });

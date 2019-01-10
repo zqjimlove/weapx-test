@@ -5,7 +5,7 @@ let __startTest = false;
 let __startTestRepeatSetSameValueTest = false;
 let pageUpdated = false;
 let sameValueTestPageDidUpdateFlag = false;
-
+let onPageDidUpdateTimes = 0;
 export default {
   mixins: [
     {
@@ -32,6 +32,7 @@ export default {
       },
       lifecycle: {
         onPageDidUpdate() {
+          onPageDidUpdateTimes++;
           if (__startTest) {
             pageUpdated = true;
           }
@@ -91,10 +92,11 @@ export default {
           expect(pageCtx.data._setText.a).to.be.undefined;
           expect(pageCtx.data._setText.b.b1).to.be.equal("b2");
           done();
-        }, 100);
+        }, 300);
       });
 
       it("不可立即获取data", function() {
+        pageUpdated = false;
         this.pageCtx.setState({
           testDataQueue: true
         });
@@ -115,6 +117,7 @@ export default {
       });
 
       it("延迟更新页面", function(done) {
+        pageUpdated = false;
         this.pageCtx.setState({
           testDataQueueDelayUpdate: true
         });
@@ -128,6 +131,7 @@ export default {
       it("setState阻止更新", function(done) {
         const { pageCtx } = this;
         this.delay(() => {
+          const _onPageDidUpdateTimes = onPageDidUpdateTimes;
           pageCtx.setState({
             testDataQueueShouldUpdateFlag: 1,
             testDataQueueStopUpdate: true
@@ -135,9 +139,15 @@ export default {
 
           const c1Prm = new Promise((resolve, reject) => {
             this.delay(() => {
-              expect(pageCtx.data.testDataQueueStopUpdate).to.be.undefined;
-              expect(pageCtx.data.testDataQueueShouldUpdateFlag).to.be
-                .undefined;
+              expect(pageCtx.data.testDataQueueStopUpdate,"testDataQueueStopUpdate").to.be.true;
+              expect(
+                pageCtx.data.testDataQueueShouldUpdateFlag,
+                "testDataQueueShouldUpdateFlag"
+              ).to.be.equal(1);
+              expect(
+                onPageDidUpdateTimes,
+                "onPageDidUpdateTimes should equal"
+              ).to.be.equal(_onPageDidUpdateTimes);
               pageCtx.setState(
                 {
                   testDataQueueStopUpdate: false
@@ -158,7 +168,8 @@ export default {
                     "testDataQueueStopUpdate"
                   ).to.be.false;
                   expect(
-                    pageCtx.data.testDataQueueShouldUpdateFlag
+                    pageCtx.data.testDataQueueShouldUpdateFlag,
+                    "testDataQueueShouldUpdateFlag 2"
                   ).to.be.equal(1);
                   resolve();
                 } catch (e) {
@@ -185,8 +196,8 @@ export default {
                   sameValueTestFlag: 2
                 },
                 () => {
-                  expect(sameValueTestPageDidUpdateFlag).to.be.false;
-                  expect(pageCtx.data.sameValueTestFlag).to.be.equal(2);
+                  expect(sameValueTestPageDidUpdateFlag,"sameValueTestPageDidUpdateFlag").to.be.false;
+                  expect(pageCtx.data.sameValueTestFlag,"sameValueTestFlag").to.be.equal(2);
                   done();
                 }
               );
@@ -194,7 +205,6 @@ export default {
           );
         }, 300);
       });
-      
     });
   }
 };
